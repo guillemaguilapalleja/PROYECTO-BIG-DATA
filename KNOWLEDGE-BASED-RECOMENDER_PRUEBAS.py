@@ -86,7 +86,7 @@ def get_recomendations_all_data(percentile=0.8):
     
     return q_motorbikes
 
-def get_motorbike_by_ideal():
+def get_motorbike_by_anything_we_want():
 
     motorbikes = data.copy()
 
@@ -189,7 +189,7 @@ if option == 1:
     print(get_recomendations_all_data(percentile=0.8).head(10))
     
 if option == 2:
-    print(get_motorbike_by_ideal().head(10))
+    print(get_motorbike_by_anything_we_want().head(10))
     
 if option == 3:
     motorbike = get_motorbike_by_money()
