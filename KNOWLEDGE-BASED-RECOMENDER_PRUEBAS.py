@@ -4,10 +4,6 @@ import random
 
 # Load motorbikes Metadata
 data = pd.read_csv('C:\\SCCBB\DATASETS\MOTORBIKE_DATABASE.csv', low_memory=False)
-list_of_brands_total = pd.read_csv('C:\\SCCBB\DATASETS\Brands.csv', low_memory=False)
-
-list_of_brands = pd.DataFrame()
-list_of_brands = data['brand']
 
 #Extract the features of the interest​​ ​​ 
 
@@ -29,27 +25,46 @@ data['year'] = data['year'].apply(convert_int)
 data['fuel'] = data['fuel'].apply(convert_int)
 data['price'] = data['price'].apply(convert_int)
 
-def chart_building(brand,low_price,high_price,low_year,high_year,fuel,percentile=0.8):
+def convert_string(x):
+    try:
+        return str(x)
+    except:
+        return None
 
-    #Define a new motorbikes variable to store the preferred motorbikes. Copy the contents of gen_df to motorbikes
+data['brand'] = data['brand'].apply(convert_string)
+data['model'] = data['model'].apply(convert_string)
+print("What do you want to do? \n(1) Get recomendations from a motorbike")
+print("(2) Get recomendations\n(3) Money")
+option = int(input())
+
+motorbikes = data.copy()
+
+sample = motorbikes.sample(axis = 0)
+brandRand = sample['brand'].values[0]
+      
+
+def get_recomendations_all_data(percentile=0.8):
+    
     motorbikes = data.copy()
 
-    #Filter based on the condition
-    if brand is None:
-        brand_random = random.choice(list_of_brands)
-        motorbikes = motorbikes[(motorbikes['brand'] == brand_random) &
-        (motorbikes['price'] >= low_price) &
-        (motorbikes['price'] <= high_price) &
-        (motorbikes['year'] >= low_year) &
-        (motorbikes['year'] <= high_year) &
-        (motorbikes['fuel'] == fuel)]
+    print("Input preferred brand")  
+    brand = str(input())
+    
+    print("Input lowest price")  
+    low_price = int(input())
+    
+    print("Input highest price") 
+    high_price = int(input())
+    
+    print("Input earliest year") 
+    low_year = int(input())
+    
+    print("Input latest year") 
+    high_year = int(input())
+    
+    print("Input type of fuel (1 = 95 fuel, 2 = 98 fuel, 3 = Diesel)") 
+    fuel = int(input())
 
-    if low_price > high_price:
-        return 'The low price can not be higher than the lower price.'
-    
-    if low_year > high_year:
-        return 'The low year can not be higher than the lower year.'
-    
     motorbikes = motorbikes[(motorbikes['brand'] == brand) &
         (motorbikes['price'] >= low_price) &
         (motorbikes['price'] <= high_price) &
@@ -68,55 +83,117 @@ def chart_building(brand,low_price,high_price,low_year,high_year,fuel,percentile
     #Sort motorbikes in descending order of their scores
 
     q_motorbikes = q_motorbikes.sort_values('price', ascending=False)
+    
     return q_motorbikes
 
-#Ask for preferred genres
+def get_motorbike_by_ideal():
 
-print("Input preferred brand")
+    motorbikes = data.copy()
 
-brand = input()
+    print("Write what would your ideal motorbike be:\n")
 
-#Ask for lower limit of duration
-
-print("Input lowest price")
-
-low_price = int(input())
-
-#Ask for upper limit of duration
-
-print("Input highest price")
-
-high_price = int(input())
-
-#Ask for lower limit of timeline
-
-print("Input earliest year")
-
-low_year = int(input())
-
-#Ask for upper limit of timeline
-
-print("Input latest year")
-
-high_year = int(input())
-
-print("Input type of fuel (1 = 95 fuel, 2 = 98 fuel, 3 = Diesel)")
-
-fuel = int(input())
-
-#Generate the chart for top animation movies and display top 5.
-
-motorbikes_recomended = chart_building(brand=brand,low_price=low_price,high_price=high_price,
-                                       low_year=low_year,high_year=high_year, fuel=fuel)
-
-#KBS=KBS.model
-
-#motorbikes_recomended=motorbikes_recomended.reset_index(drop=True)
-
-if type(motorbikes_recomended) == str:
-    print(motorbikes_recomended)
-else:
-    if motorbikes_recomended.empty == True:
-        print("There is not a motorbike with such characteristics. Try again with diferent parameters.")
+    print("Input preferred brand")
+    
+    brand = str(input())
+    
+    print("Input lowest price")
+    
+    low_price = int(input())
+    
+    print("Input highest price")
+    
+    high_price = int(input())
+    
+    print("Input earliest year")
+    
+    low_year = int(input())
+    
+    print("Input latest year")
+    
+    high_year = int(input())
+    
+    print("Input type of fuel (1 = 95 fuel, 2 = 98 fuel, 3 = Diesel):")
+    
+    fuel = int(input())
+    
+    if low_price == 0:
+        low_price = motorbikes['price'].min() 
+    if high_price == 0:
+        high_price = motorbikes['price'].max() 
+    if low_year == 0:
+        low_year = motorbikes['year'].min()
+    if high_year == 0:
+        high_year = motorbikes['year'].max()
+    if fuel == 0:
+        fuel = random.randint(1,3)  
+    
+    if brand != '':
+    
+        motorbikes = motorbikes[(motorbikes['brand'] == brand) &
+            (motorbikes['price'] >= low_price) &
+            (motorbikes['price'] <= high_price) &
+            (motorbikes['year'] >= low_year) &
+            (motorbikes['year'] <= high_year) &
+            (motorbikes['fuel'] == fuel)]
     else:
-        print(motorbikes_recomended)
+        
+        motorbikes = motorbikes[(motorbikes['price'] >= low_price) &
+            (motorbikes['price'] <= high_price) &
+            (motorbikes['year'] >= low_year) &
+            (motorbikes['year'] <= high_year) &
+            (motorbikes['fuel'] == fuel)]
+
+    motorbikes = motorbikes.sort_values('price', ascending=False)
+    
+    return motorbikes
+
+def get_motorbike_by_money():
+
+    motorbikes = data.copy()
+    
+    print("Input lowest price")
+    
+    low_price = int(input())
+    
+    print("Input highest price")
+    
+    high_price = int(input())
+    
+    if low_price == 0:
+        
+        if high_price == 0:
+            
+            return 0
+        
+        else:
+            
+            motorbikes = motorbikes[(motorbikes['price'] <= high_price)]
+    else:
+        
+        if high_price == 0:
+            
+            motorbikes = motorbikes[(motorbikes['price'] >= low_price)]
+            
+        else:
+            
+            motorbikes = motorbikes[(motorbikes['price'] >= low_price) &
+                                    (motorbikes['price'] <= high_price)]
+
+    motorbikes = motorbikes.sort_values('price', ascending=False)
+    
+    return motorbikes
+
+
+
+if option == 1:
+    print(get_recomendations_all_data(percentile=0.8).head(10))
+    
+if option == 2:
+    print(get_motorbike_by_ideal().head(10))
+    
+if option == 3:
+    motorbike = get_motorbike_by_money()
+    if motorbike is 0:
+        print("There is no motorbike with prize 0$!")
+    else: 
+        print(motorbike.head(10))
