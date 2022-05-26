@@ -9,7 +9,7 @@ data = pd.read_csv('C:\\SCCBB\DATASETS\MOTORBIKE_DATABASE.csv', low_memory=False
 
 data = data[['brand','model', 'year', 'fuel', 'price']]
 
-print(data.head())
+#print(data.head())
 
 #Helper function to convert NaT to 0 and all other years to integers.
 
@@ -33,9 +33,7 @@ def convert_string(x):
 
 data['brand'] = data['brand'].apply(convert_string)
 data['model'] = data['model'].apply(convert_string)
-print("What do you want to do? \n(1) Get recomendations from a motorbike")
-print("(2) Get recomendations\n(3) Money")
-option = int(input())
+
 
 motorbikes = data.copy()
 
@@ -65,12 +63,41 @@ def get_recomendations_all_data(percentile=0.8):
     print("Input type of fuel (1 = 95 fuel, 2 = 98 fuel, 3 = Diesel)") 
     fuel = int(input())
 
-    motorbikes = motorbikes[(motorbikes['brand'] == brand) &
+    motorbikes = motorbikes[(motorbikes['brand'] == brand.upper()) &
         (motorbikes['price'] >= low_price) &
         (motorbikes['price'] <= high_price) &
         (motorbikes['year'] >= low_year) &
         (motorbikes['year'] <= high_year) &
         (motorbikes['fuel'] == fuel)]
+
+    #Compute the values of C and m for the filtered motorbikes
+
+    m = motorbikes['price'].quantile(percentile)
+
+    #Only consider motorbikes that have higher than m votes. Save this in a new dataframe q_motorbikes
+
+    q_motorbikes = motorbikes.copy().loc[motorbikes['price'] <= m]
+
+    #Sort motorbikes in descending order of their scores
+
+    q_motorbikes = q_motorbikes.sort_values('price', ascending=False)
+    
+    return q_motorbikes
+
+
+def get_model(percentile=0.8):
+    
+    motorbikes = data.copy()
+
+    print("Input preferred brand")  
+    brand = str(input())
+
+    print("Input preferred model")  
+    model = str(input())
+    
+    if model in motorbikes['model']:
+        motorbikes = motorbikes[(motorbikes['model'] == model.upper()) & (motorbikes['brand'] == brand.upper())]
+        return motorbikes
 
     #Compute the values of C and m for the filtered motorbikes
 
@@ -92,28 +119,22 @@ def get_motorbike_by_anything_we_want():
 
     print("Write what would your ideal motorbike be:\n")
 
-    print("Input preferred brand")
-    
+    print("Input preferred brand") 
     brand = str(input())
     
     print("Input lowest price")
-    
     low_price = int(input())
     
     print("Input highest price")
-    
     high_price = int(input())
     
     print("Input earliest year")
-    
     low_year = int(input())
     
     print("Input latest year")
-    
     high_year = int(input())
     
     print("Input type of fuel (1 = 95 fuel, 2 = 98 fuel, 3 = Diesel):")
-    
     fuel = int(input())
     
     if low_price == 0:
@@ -129,7 +150,7 @@ def get_motorbike_by_anything_we_want():
     
     if brand != '':
     
-        motorbikes = motorbikes[(motorbikes['brand'] == brand) &
+        motorbikes = motorbikes[(motorbikes['brand'] == brand.upper()) &
             (motorbikes['price'] >= low_price) &
             (motorbikes['price'] <= high_price) &
             (motorbikes['year'] >= low_year) &
@@ -152,48 +173,89 @@ def get_motorbike_by_money():
     motorbikes = data.copy()
     
     print("Input lowest price")
-    
     low_price = int(input())
     
     print("Input highest price")
-    
     high_price = int(input())
     
-    if low_price == 0:
-        
+    n = 0
+    
+    if low_price == 0:    
         if high_price == 0:
-            
-            return 0
-        
-        else:
-            
+            ascending = False
+            n = 1
+        else: 
+            ascending = True
             motorbikes = motorbikes[(motorbikes['price'] <= high_price)]
-    else:
-        
+    else:  
         if high_price == 0:
-            
-            motorbikes = motorbikes[(motorbikes['price'] >= low_price)]
-            
-        else:
-            
+            ascending = False
+            motorbikes = motorbikes[(motorbikes['price'] >= low_price)]     
+        else:  
+            ascending = True
             motorbikes = motorbikes[(motorbikes['price'] >= low_price) &
                                     (motorbikes['price'] <= high_price)]
 
-    motorbikes = motorbikes.sort_values('price', ascending=False)
+    if n == 0:
+        motorbikes = motorbikes.sort_values('price', ascending=ascending)
+        return motorbikes
+    elif n == 1:
+        return motorbikes.empty
+
+def get_prize_from_my_motorbike():
+
+    motorbikes = data.copy()
     
-    return motorbikes
+    print("Write what would your ideal motorbike be:\n")
+
+    print("Input your motorbikes brand") 
+    brand = str(input())
+    
+    print("Input your motorbikes year")
+    year = int(input())
+    
+    print("Input type of fuel of your motorbike (1 = 95 fuel, 2 = 98 fuel, 3 = Diesel):")
+    fuel = int(input())
+    
+    motorbikes = motorbikes[(motorbikes['brand'] == brand.upper()) &
+            (motorbikes['year'] == year) &
+            (motorbikes['fuel'] == fuel)]
+    
+    price = round(motorbikes['price'].mean(),2)
+    if pd.isna(price) == True:
+        message = "\nWe cant see the price of your motorbike!"
+    else:
+        message = f"\nYour motorbike would be worth aprox {price}$\n"
+    return message
+    
+    
 
 
-
-if option == 1:
-    print(get_recomendations_all_data(percentile=0.8).head(10))
+while(1):
     
-if option == 2:
-    print(get_motorbike_by_anything_we_want().head(10))
+    print("\n\nWhat do you want to do? \n(1) Get recomendations from a motorbike")
+    print("(2) Get recomendations\n(3) Money\n(4) How much does your motorbike cost?")
+    option = int(input())
     
-if option == 3:
-    motorbike = get_motorbike_by_money()
-    if motorbike is 0:
-        print("There is no motorbike with prize 0$!")
-    else: 
-        print(motorbike.head(10))
+    if option == 1:
+        motorbike = get_recomendations_all_data(percentile=0.8)
+        if motorbike.empty == True:
+            print("\nCant look at any look-a-like motorbike!")
+        else:
+            print(motorbike)
+        
+    if option == 2:
+        print(get_motorbike_by_anything_we_want().head(10))
+        
+    if option == 3:
+        motorbike = get_motorbike_by_money()
+        if motorbike.empty == True:
+            print("\nThere is no motorbike with prize 0$!")
+        else: 
+            print(motorbike.head(10))
+    
+    if option == 4:
+        print(get_prize_from_my_motorbike())
+        
+    if option == 5:
+        print(get_model(percentile=0.8).head(10))
